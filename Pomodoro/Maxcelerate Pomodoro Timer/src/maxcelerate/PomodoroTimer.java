@@ -146,6 +146,8 @@ class PomodoroTimer extends JFrame
 			// If Nimbus is not available, you can set the GUI to default look and feel.
 		}
 
+		initializeCountDownTimer();
+
 		topPanel = new JPanel();
 		topPanel.setPreferredSize(new Dimension(900, 594));
 		topPanel.setLayout(new BorderLayout());
@@ -154,7 +156,7 @@ class PomodoroTimer extends JFrame
 
 		topPanel.add(addMainTimer());
 		initializeWelcomePanel();
-    	topPanel.add(welcomePanel);
+		topPanel.add(welcomePanel);
 	}
 
 	/**
@@ -185,7 +187,7 @@ class PomodoroTimer extends JFrame
 		secondLabel.setFont(timerStyle);
 		timerPane.add(secondLabel, "alignx center, height 145!, wrap");
 
-		startTimerBT = new JButton("Start Timer");
+		startTimerBT = new JButton("Start");
 		startTimerBT.setBackground(cardinalRed);
 		startTimerBT.setContentAreaFilled(false);
 		startTimerBT.setForeground(Color.white);
@@ -250,12 +252,7 @@ class PomodoroTimer extends JFrame
 		});
 
 		startTimerBT.addActionListener((ActionEvent event) -> {
-			// Initialize the countDown timer if it's not already initialized
-			if (countDown == null) {
-				initializeCountDownTimer();
-			}
-			
-			// Start the timer when the "Start Timer" button is clicked
+			// Start the timer only if it's not running
 			if (!isTimerRunning) {
 				countDown.start();
 				isTimerRunning = true;
@@ -276,16 +273,43 @@ class PomodoroTimer extends JFrame
 			if (delayTimer != null && delayTimer.isRunning()) {
 				delayTimer.stop();
 				delayRemainingLabel.setVisible(false);
-				startPauseBT.setIcon(pauseIcon);
-				startPauseBT.setActionCommand("Pause"); // Set action command to "Pause" here
-				countDown.start();
-				stopBT.setEnabled(true);
 			}
 		
 			startPauseBT.setVisible(true);
 			continueBT.setVisible(false);
 			stopBT.setVisible(true);
-			runMainTimer();
+		});
+
+		stopBT.addActionListener((ActionEvent event) -> {
+			// Handle the stop button click event here
+			if (countDown != null && countDown.isRunning()) {
+				countDown.stop();
+			}
+			if (shortTimer != null && shortTimer.isRunning()) {
+				shortTimer.stop();
+			}
+			if (longTimer != null && longTimer.isRunning()) {
+				longTimer.stop();
+			}
+			
+			// Reset the timer values
+			minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
+			secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
+			
+			// Update the UI
+			minuteLabel.setText(String.format("%02d", minutesRemaining));
+			secondLabel.setText(String.format("%02d", secondsRemaining));
+			isTimerRunning = false;
+			startPauseBT.setIcon(startIcon);
+			startPauseBT.setActionCommand("Start");
+			
+			// Make the start button visible
+			startPauseBT.setVisible(true);
+			
+			// Show the continue button only if it was previously visible
+			if (continueBT.isVisible()) {
+				continueBT.setVisible(true);
+			}
 		});
 		
 
@@ -476,33 +500,33 @@ class PomodoroTimer extends JFrame
 	}
 
 	// Add a method to initialize the countDown timer
-private void initializeCountDownTimer() {
-    countDown = new Timer(INTERVAL, (ActionEvent event) -> {
-        if (secondsRemaining == ORIGINAL_COUNTDOWN_SECONDS) {
-            if (minutesRemaining == 0) {
-                // Handle timer completion by resetting the clock
-                minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
-                secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
-                minuteLabel.setText(String.format("%02d", minutesRemaining));
-                secondLabel.setText(String.format("%02d", secondsRemaining));
-
-                // Stop the timer and update the UI
-                countDown.stop();
-                isTimerRunning = false;
-                startPauseBT.setIcon(startIcon);
-                startPauseBT.setActionCommand("Start");
-            } else {
-                minutesRemaining--;
-                secondsRemaining = 59;
-                minuteLabel.setText(String.format("%02d", minutesRemaining));
-                secondLabel.setText(String.format("%02d", secondsRemaining));
-            }
-        } else {
-            secondsRemaining--;
-            secondLabel.setText(String.format("%02d", secondsRemaining));
-        }
-    });
-}
+	private void initializeCountDownTimer() {
+		countDown = new Timer(INTERVAL, (ActionEvent event) -> {
+			if (secondsRemaining == ORIGINAL_COUNTDOWN_SECONDS) {
+				if (minutesRemaining == 0) {
+					// Handle timer completion by resetting the clock
+					minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
+					secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
+					minuteLabel.setText(String.format("%02d", minutesRemaining));
+					secondLabel.setText(String.format("%02d", secondsRemaining));
+	
+					// Stop the timer and update the UI
+					countDown.stop();
+					isTimerRunning = false;
+					startPauseBT.setIcon(startIcon);
+					startPauseBT.setActionCommand("Start");
+				} else {
+					minutesRemaining--;
+					secondsRemaining = 59;
+					minuteLabel.setText(String.format("%02d", minutesRemaining));
+					secondLabel.setText(String.format("%02d", secondsRemaining));
+				}
+			} else {
+				secondsRemaining--;
+				secondLabel.setText(String.format("%02d", secondsRemaining));
+			}
+		});
+	}
 	
 
     private static void runGUI()
