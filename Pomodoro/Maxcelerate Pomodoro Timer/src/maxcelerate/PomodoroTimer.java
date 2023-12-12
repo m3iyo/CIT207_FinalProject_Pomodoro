@@ -47,7 +47,7 @@ class PomodoroTimer extends JFrame
 	private Icon stopIcon;
 	private Icon skipIcon;
 	private Timer countDown;
-	private Timer shortTimer;
+	private Timer bebeTime;
 	private Timer longTimer;
 	private Timer delayTimer;
 	private int secondsRemaining;
@@ -228,6 +228,35 @@ class PomodoroTimer extends JFrame
 		delayRemainingLabel.setFont(delayLabelStyles);
 		timerPane.add(delayRemainingLabel, "alignx center");
 
+		stopBT.addActionListener((ActionEvent event) -> {
+			if (countDown != null && countDown.isRunning()) {
+				countDown.stop();
+				isTimerRunning = false;
+				startPauseBT.setIcon(startIcon);
+				startPauseBT.setActionCommand("Start");
+				startPauseBT.setVisible(true);
+				stopBT.setEnabled(true);
+				startPauseBT.setEnabled(true);
+				delayRemainingLabel.setVisible(false);
+		
+				// Reset the timer values and update the UI
+				minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
+				secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
+				minuteLabel.setText(String.format("%02d", minutesRemaining));
+				secondLabel.setText(String.format("%02d", secondsRemaining));
+		
+				// Stop other timers if running
+				if (bebeTime != null && bebeTime.isRunning()) {
+					bebeTime.stop();
+				}
+				if (longTimer != null && longTimer.isRunning()) {
+					longTimer.stop();
+				}
+		
+				roundsCompleted = 0; // Timer is Reset.
+			}
+		});
+		
 		startPauseBT.addActionListener((ActionEvent event) -> {
 			switch (event.getActionCommand()) {
 				case "Pause":
@@ -254,20 +283,42 @@ class PomodoroTimer extends JFrame
 		startTimerBT.addActionListener((ActionEvent event) -> {
 			// Start the timer only if it's not running
 			if (!isTimerRunning) {
-				countDown.start();
-				isTimerRunning = true;
-				startPauseBT.setIcon(pauseIcon);
-				startPauseBT.setActionCommand("Pause");
+				if (countDown != null) {
+					// Stop other timers if running
+					if (bebeTime != null && bebeTime.isRunning()) {
+						bebeTime.stop();
+					}
+					if (longTimer != null && longTimer.isRunning()) {
+						longTimer.stop();
+					}
+		
+					// Reset the timer values
+					minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
+					secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
+		
+					// Update the UI
+					minuteLabel.setText(String.format("%02d", minutesRemaining));
+					secondLabel.setText(String.format("%02d", secondsRemaining));
+		
+					// Start the main timer
+					countDown.start();
+					isTimerRunning = true;
+					startPauseBT.setIcon(pauseIcon);
+					startPauseBT.setActionCommand("Pause");
+				}
 			}
 		});
-
+		
+		
 		continueBT.addActionListener((ActionEvent event) -> {
-			if (event.getActionCommand().equals("SkipShortTimer") && shortTimer != null) {
-				shortTimer.stop();
+			if (event.getActionCommand().equals("SkipShortTimer") && bebeTime != null && bebeTime.isRunning()) {
+				bebeTime.stop();
 				roundsCompleted++;
-			} else if (event.getActionCommand().equals("SkipLongTimer") && longTimer != null) {
+				runMainTimer();
+			} else if (event.getActionCommand().equals("SkipLongTimer") && longTimer != null && longTimer.isRunning()) {
 				longTimer.stop();
 				roundsCompleted = 0; // Timer is Reset.
+				runMainTimer();
 			}
 		
 			if (delayTimer != null && delayTimer.isRunning()) {
@@ -275,115 +326,69 @@ class PomodoroTimer extends JFrame
 				delayRemainingLabel.setVisible(false);
 			}
 		
-			startPauseBT.setVisible(true);
-			continueBT.setVisible(false);
-			stopBT.setVisible(true);
-		});
-
-		stopBT.addActionListener((ActionEvent event) -> {
-			// Handle the stop button click event here
-			if (countDown != null && countDown.isRunning()) {
-				countDown.stop();
-			}
-			if (shortTimer != null && shortTimer.isRunning()) {
-				shortTimer.stop();
-			}
-			if (longTimer != null && longTimer.isRunning()) {
-				longTimer.stop();
-			}
-			
 			// Reset the timer values
 			minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
 			secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
-			
+		
 			// Update the UI
 			minuteLabel.setText(String.format("%02d", minutesRemaining));
 			secondLabel.setText(String.format("%02d", secondsRemaining));
+		
 			isTimerRunning = false;
 			startPauseBT.setIcon(startIcon);
 			startPauseBT.setActionCommand("Start");
-			
+		
 			// Make the start button visible
 			startPauseBT.setVisible(true);
-			
+		
 			// Show the continue button only if it was previously visible
 			if (continueBT.isVisible()) {
 				continueBT.setVisible(true);
 			}
+		
+			// Ensure the timer is stopped after skipping
+			if (countDown != null && countDown.isRunning()) {
+				countDown.stop();
+			}
+		
+			// Ensure the stop button is enabled
+			stopBT.setEnabled(true);
+		
+			// Ensure the start button is enabled
+			startPauseBT.setEnabled(true);
 		});
 		
-
 		return timerPane;
 	}
 
-	private void runMainTimer()
-	{
-		//System.out.println("Start Main " + String.format("%d", roundsCompleted));
-		minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
-		secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
+	private void runMainTimer() {
+        // System.out.println("Start Main " + String.format("%d", roundsCompleted));
+        minutesRemaining = ORIGINAL_COUNTDOWN_MINUTES;
+        secondsRemaining = ORIGINAL_COUNTDOWN_SECONDS;
 
-		minuteLabel.setText(String.format("%02d", ORIGINAL_COUNTDOWN_MINUTES));
-		secondLabel.setText(String.format("%02d", ORIGINAL_COUNTDOWN_SECONDS));
+        minuteLabel.setText(String.format("%02d", ORIGINAL_COUNTDOWN_MINUTES));
+        secondLabel.setText(String.format("%02d", ORIGINAL_COUNTDOWN_SECONDS));
 
-		if(roundsCompleted == ONE_POMODORO_CYCLE)
-		{
-			//System.out.println("Stop Long " + roundsCompleted);
-			longTimer.stop();
-			roundsCompleted = 0; // Timer is Reset.
-		}
+        if (roundsCompleted == ONE_POMODORO_CYCLE) {
+            // System.out.println("Stop Long " + roundsCompleted);
+            longTimer.stop();
+            roundsCompleted = 0; // Timer is Reset.
+        } else if (roundsCompleted > 0 && roundsCompleted % 2 == 0) {
+            // System.out.println("Stop Short " + roundsCompleted);
+            bebeTime.stop();
+        }
+        /*else
+        {
+            System.out.println("Don't Stop Main " + roundsCompleted);
+        }*/
 
-		else if(roundsCompleted > 0 && roundsCompleted % 2 == 0)
-		{
-			//System.out.println("Stop Short " + roundsCompleted);
-			shortTimer.stop();
-		}
-		/*else
-		{
-			System.out.println("Don't Stop Main " + roundsCompleted);
-		}*/
+        // Create and start the timer here
+        if (countDown != null) {
+            countDown.start();
+        }
+    }
 
-		countDown = new Timer(INTERVAL, (ActionEvent event) -> {
-                    if(secondsRemaining == ORIGINAL_COUNTDOWN_SECONDS)
-                    {
-                        if(minutesRemaining == 0)
-                        {
-                            //startPauseBT.setText("Begin");
-                            //startPauseBT.setActionCommand("Start");
-                            //mainCompleted = false;
-                            roundsCompleted++;
-                            
-                            // Selection of which break timer to run.
-                            if(roundsCompleted == ONE_POMODORO_CYCLE)
-                            {
-                                runLongTimer();
-                            }
-                            else if(roundsCompleted > 0 && roundsCompleted % 2 == 0)
-                            {
-                                runShortTimer();
-                            }
-                        }
-                        else
-                        {
-                            minutesRemaining -= 1;
-                            secondsRemaining = 59;
-                            minuteLabel.setText(String.format("%02d", minutesRemaining));
-                            secondLabel.setText(String.format("%02d", secondsRemaining));
-                        }
-                    }
-                    else
-                    {
-                        if(secondsRemaining > ORIGINAL_COUNTDOWN_SECONDS)
-                        {
-                            secondsRemaining -= 1;
-                            secondLabel.setText(String.format("%02d", secondsRemaining));
-                        }
-                    }
-                });
-		
-		countDown.start();
-	}
-
-	private void runShortTimer()
+	private void runbebeTime()
 	{
 		//System.out.println("Start Short " + String.format("%d", roundsCompleted));
 		minutesRemaining = ORIGINAL_SHORTBREAK_MINUTES;
@@ -397,7 +402,7 @@ class PomodoroTimer extends JFrame
 		minuteLabel.setText(String.format("%02d", ORIGINAL_SHORTBREAK_MINUTES));
 		secondLabel.setText(String.format("%02d", ORIGINAL_SHORTBREAK_SECONDS));
 
-		shortTimer = new Timer(INTERVAL, (ActionEvent event) -> {
+		bebeTime = new Timer(INTERVAL, (ActionEvent event) -> {
                     if(secondsRemaining == ORIGINAL_SHORTBREAK_SECONDS)
                     {
                         if(minutesRemaining == 0)
@@ -423,7 +428,7 @@ class PomodoroTimer extends JFrame
                     }
                 });
 
-		shortTimer.start();
+		bebeTime.start();
 	}
 
 	private void runLongTimer()
@@ -538,7 +543,7 @@ class PomodoroTimer extends JFrame
     	mainFrame.setResizable(false);
     	mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
-	
+	//Pisteng yawa mani uy
 	public static void main(String args[])
 	{
 		SwingUtilities.invokeLater(() -> {
