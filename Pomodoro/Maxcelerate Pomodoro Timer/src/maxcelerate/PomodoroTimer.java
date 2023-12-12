@@ -92,8 +92,10 @@ class PomodoroTimer extends JFrame
 		welcomePanel = new JPanel(new MigLayout("align center, center", "[grow]", "[center]20[center]20[center]"));
 		welcomePanel.setBackground(skyBlue);
 	
+		// Update font style and size for the welcome label
 		JLabel welcomeLabel = new JLabel("Enter your name:");
 		welcomeLabel.setForeground(Color.white);
+		welcomeLabel.setFont(new Font("Arial", Font.BOLD, 19)); // You can modify the font style and size here
 		welcomePanel.add(welcomeLabel, "align center, center, wrap");
 	
 		userNameField = new JTextField(20);
