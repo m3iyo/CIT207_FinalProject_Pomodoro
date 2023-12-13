@@ -1,10 +1,14 @@
 package maxcelerate;
 
 import java.awt.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.Objects;
 import javax.swing.*;
 import java.awt.event.*;
 import javax.swing.UIManager.*;
 import javax.swing.border.Border;
+
 
 import net.miginfocom.swing.*; // For MigLayout
 
@@ -60,6 +64,38 @@ class PomodoroTimer extends JFrame
 	private JButton continueButton;
 
 	private String userName; // To store the user's name
+	
+
+	//For Fonts
+	private Font proximaNovaFont;
+	
+
+	private void loadProximaNovaFont() {
+		try {
+			InputStream inputStream = getClass().getClassLoader().getResourceAsStream("maxcelerate/fonts/Proxima Nova Reg.otf");
+			proximaNovaFont = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+	
+			proximaNovaFont = proximaNovaFont.deriveFont(Font.BOLD, 16);
+	
+			// Set the font for the entire content pane
+			setFontForContainer(this.getContentPane(), proximaNovaFont);
+	
+		} catch (IOException | FontFormatException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private void setFontForContainer(Container container, Font font) {
+		Component[] components = container.getComponents();
+		for (Component component : components) {
+			if (component instanceof Container) {
+				setFontForContainer((Container) component, font);
+			} else if (component instanceof JComponent) {
+				((JComponent) component).setFont(font);
+			}
+		}
+	}
 
 	class RoundedBorder implements Border {
 		private int radius;
@@ -95,10 +131,12 @@ class PomodoroTimer extends JFrame
 		// Update font style and size for the welcome label
 		JLabel welcomeLabel = new JLabel("Enter your name:");
 		welcomeLabel.setForeground(Color.white);
-		welcomeLabel.setFont(new Font("Arial", Font.BOLD, 19)); // You can modify the font style and size here
+		welcomeLabel.setFont(new Font("Proxima Nova", Font.BOLD, 19)); // You can modify the font style and size here
 		welcomePanel.add(welcomeLabel, "align center, center, wrap");
 	
+		// Initialize userNameField
 		userNameField = new JTextField(20);
+		userNameField.setHorizontalAlignment(JTextField.CENTER);
 	
 		// Create a custom rounded border with thicker lines and more rounded corners
 		Border roundedBorder = new RoundedBorder(20, Color.BLACK); // Adjust the radius as needed
@@ -118,6 +156,7 @@ class PomodoroTimer extends JFrame
 				topPanel.add(addMainTimer());
 				topPanel.revalidate();
 				topPanel.repaint();
+				loadProximaNovaFont();  // Load the font after initializing the welcome panel
 			}
 		});
 	}
@@ -159,11 +198,13 @@ class PomodoroTimer extends JFrame
 		topPanel.add(addMainTimer());
 		initializeWelcomePanel();
 		topPanel.add(welcomePanel);
+		loadProximaNovaFont();
 	}
 
 	/**
 	 * @return
 	 */
+	
 	private JPanel addMainTimer()
 	{
 		timerPane = new JPanel(new MigLayout("align center, center", "[grow]", "[][]0[]"));
@@ -171,8 +212,40 @@ class PomodoroTimer extends JFrame
 
 		JLabel welcomeMessage = new JLabel("Welcome, " + this.userName);
 		welcomeMessage.setForeground(Color.white);
-		welcomeMessage.setFont(new Font("Arial", Font.BOLD, 24));
+		welcomeMessage.setFont(new Font("Proxima Nova", Font.BOLD, 24));
 		timerPane.add(welcomeMessage, "cell 0 0, center, wrap"); // Position the label at the top center
+
+		// Create a JComboBox (Dropdown Menu)
+		JComboBox<String> taskDropdown = new JComboBox<>();
+		taskDropdown.setPreferredSize(new Dimension(200, 30));
+		// taskDropdown.setBackground(cardinalRed);
+		// taskDropdown.setForeground(Color.white);
+		taskDropdown.setFont(formBTStyles);
+		// taskDropdown.setBorder(new RoundedBorder(20, Color.BLACK));
+		taskDropdown.addItem("Task 1"); // Add tasks here if any
+	
+		JButton createTaskButton = new JButton("Create Task");
+		createTaskButton.setBackground(null);
+		createTaskButton.setForeground(Color.white);
+		createTaskButton.setFont(formBTStyles);
+		createTaskButton.setFocusPainted(false); // Remove focus border
+		// createTaskButton.setBorder(new RoundedBorder(20, Color.BLACK));
+	
+		// Add ActionListener to the "Create Task" button
+		createTaskButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Add logic to create a task here
+				String newTask = JOptionPane.showInputDialog("Enter task title:");
+				if (newTask != null && !newTask.isEmpty()) {
+					taskDropdown.addItem(newTask);
+				}
+			}
+		});
+	
+		// Add the JComboBox and "Create Task" button to the timerPane
+		timerPane.add(taskDropdown, "alignx center, wrap");
+		timerPane.add(createTaskButton, "alignx center, gaptop 10, wrap");
 
 		minuteLabel = new JLabel(String.format("%02d", ORIGINAL_COUNTDOWN_MINUTES));
 		minuteLabel.setForeground(Color.white);
@@ -190,11 +263,13 @@ class PomodoroTimer extends JFrame
 		timerPane.add(secondLabel, "alignx center, height 145!, wrap");
 
 		startTimerBT = new JButton("Start");
-		startTimerBT.setBackground(cardinalRed);
-		startTimerBT.setContentAreaFilled(false);
+		startTimerBT.setBackground(null);
 		startTimerBT.setForeground(Color.white);
 		startTimerBT.setFont(formBTStyles);
+		// startTimerBT.setBorder(new RoundedBorder(20, Color.white)); // Set white border color
+		startTimerBT.setFocusPainted(false); // Remove focus border
 		timerPane.add(startTimerBT, "alignx center, gaptop 10, wrap");
+
 
 		startIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Play.png");
 		pauseIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Pause.png");
