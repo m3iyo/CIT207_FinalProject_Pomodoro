@@ -63,6 +63,9 @@ class PomodoroTimer extends JFrame
 	private JTextField userNameField;
 	private JButton continueButton;
 
+	private JPanel introPanel; // New intro panel
+    private JButton nextButton; // New "Next" button
+
 	private String userName; // To store the user's name
 	
 
@@ -123,6 +126,28 @@ class PomodoroTimer extends JFrame
 			g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
 		}
 	}
+
+	private void initializeIntroPanel() {
+        introPanel = new JPanel(new MigLayout("align center, center", "[grow]", "[center]20[center]20[center]"));
+        introPanel.setBackground(skyBlue);
+
+        JLabel introLabel = new JLabel("Welcome to Nigro");
+        introLabel.setForeground(Color.white);
+        introPanel.add(introLabel, "align center, center, wrap");
+
+        nextButton = new JButton("Proceed/Next");
+        nextButton.setActionCommand("Next"); // Set action command for "Next" button
+        introPanel.add(nextButton, "align center, center, wrap");
+
+        nextButton.addActionListener((ActionEvent event) -> {
+            if (event.getActionCommand().equals("Next")) {
+                topPanel.remove(introPanel);
+                topPanel.add(welcomePanel);
+                topPanel.revalidate();
+                topPanel.repaint();
+            }
+        });
+    }
 
 	private void initializeWelcomePanel() {
 		welcomePanel = new JPanel(new MigLayout("align center, center", "[grow]", "[center]20[center]20[center]"));
@@ -199,6 +224,10 @@ class PomodoroTimer extends JFrame
 		initializeWelcomePanel();
 		topPanel.add(welcomePanel);
 		loadProximaNovaFont();
+
+		topPanel.add(addMainTimer());
+        initializeIntroPanel(); // Initialize the introPanel
+        topPanel.add(introPanel);
 	}
 
 	/**
@@ -271,8 +300,8 @@ class PomodoroTimer extends JFrame
 		timerPane.add(startTimerBT, "alignx center, gaptop 10, wrap");
 
 
-		startIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Play.png");
-		pauseIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Pause.png");
+		startIcon = new ImageIcon("C:\\Users\\Hi\\CIT207_FinalProject_Pomodoro\\Pomodoro\\Maxcelerate Pomodoro Timer\\src\\Play.png");
+		pauseIcon = new ImageIcon("C:\\Users\\Hi\\CIT207_FinalProject_Pomodoro\\Pomodoro\\Maxcelerate Pomodoro Timer\\src\\Pause.png");
 		startPauseBT = new JButton(startIcon);
 		startPauseBT.setContentAreaFilled(false);
 		startPauseBT.setBackground(indiaGreen);
@@ -282,7 +311,7 @@ class PomodoroTimer extends JFrame
 		timerPane.add(startPauseBT, "gaptop 10, alignx center, split 3, spanx, pushx");
 
 
-		skipIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Skip.png");
+		skipIcon = new ImageIcon("C:\\Users\\Hi\\CIT207_FinalProject_Pomodoro\\Pomodoro\\Maxcelerate Pomodoro Timer\\src\\Skip.png");
 		continueBT = new JButton(skipIcon);
 		continueBT.setBackground(cardinalRed);
 		continueBT.setContentAreaFilled(false);
@@ -291,7 +320,7 @@ class PomodoroTimer extends JFrame
 		continueBT.setVisible(true);
 		timerPane.add(continueBT, "alignx center, hidemode 0, gapleft 30, gapright 30");
 
-		stopIcon = new ImageIcon("E:/RarFiles/Files/School Works/2nd Year/CIT 207/Final Project/Pomodoro/Maxcelerate Pomodoro Timer/src/Stop.png");
+		stopIcon = new ImageIcon("C:\\Users\\Hi\\CIT207_FinalProject_Pomodoro\\Pomodoro\\Maxcelerate Pomodoro Timer\\src\\Stop.png");
 		stopBT = new JButton(stopIcon);
 		stopBT.setContentAreaFilled(false);
 		stopBT.setBackground(cardinalRed);
